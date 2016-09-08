@@ -1,0 +1,12 @@
+{
+    "name": "vue-touch",
+    "description": "Hammer.js based touch events plugin for Vue.js",
+    "repos": "https://github.com/vuejs/vue-touch.git",
+    "main": "vue-touch.js",
+    "tag": "master",
+    "reposType": "npm",
+    "dependencies": {
+        "hammerjs": "^2.0.6"
+    },
+    "version": "1.0.1"
+}
