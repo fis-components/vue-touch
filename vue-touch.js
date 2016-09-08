@@ -5,8 +5,8 @@
     ? require('hammerjs')
     : window.Hammer
   var gestures = ['tap', 'pan', 'pinch', 'press', 'rotate', 'swipe']
-  var directions = ['up', 'down', 'left', 'right', 'horizontal', 'vertical']
-  var customeEvents = {}
+  var directions = ['up', 'down', 'left', 'right', 'horizontal', 'vertical', 'all']
+  var customEvents = {}
 
   if (!Hammer) {
     throw new Error('[vue-touch] cannot locate Hammer.js.')
@@ -35,9 +35,9 @@
         }
         var recognizerType, recognizer
 
-        if (customeEvents[event]) {
+        if (customEvents[event]) {
           // custom event
-          var custom = customeEvents[event]
+          var custom = customEvents[event]
           recognizerType = custom.type
           recognizer = new Hammer[capitalize(recognizerType)](custom)
           recognizer.recognizeWith(mc.recognizers)
@@ -82,24 +82,26 @@
 
       update: function (fn) {
         var mc = this.mc
-        var vm = this.vm
         var event = this.arg
         // teardown old handler
         if (this.handler) {
           mc.off(event, this.handler)
         }
         if (typeof fn !== 'function') {
+          this.handler = null
           console.warn(
             '[vue-touch] invalid handler function for v-touch: ' +
             this.arg + '="' + this.descriptor.raw
           )
         } else {
-          mc.on(event, fn)
+          mc.on(event, (this.handler = fn))
         }
       },
 
       unbind: function () {
-        this.mc.off(this.arg, this.handler)
+        if (this.handler) {
+          this.mc.off(this.arg, this.handler)
+        }
         if (!Object.keys(this.mc.handlers).length) {
           this.mc.destroy()
           this.el.hammer = null
@@ -131,7 +133,7 @@
 
   vueTouch.registerCustomEvent = function (event, options) {
     options.event = event
-    customeEvents[event] = options
+    customEvents[event] = options
   }
 
   function capitalize (str) {
@@ -141,8 +143,9 @@
   function guardDirections (options) {
     var dir = options.direction
     if (typeof dir === 'string') {
-      if (directions.indexOf(dir) > -1) {
-        options.direction = Hammer['DIRECTION_' + dir.toUpperCase()]
+      var hammerDirection = 'DIRECTION_' + dir.toUpperCase()
+      if (directions.indexOf(dir) > -1 && Hammer.hasOwnProperty(hammerDirection)) {
+        options.direction = Hammer[hammerDirection]
       } else {
         console.warn('[vue-touch] invalid direction: ' + dir)
       }
